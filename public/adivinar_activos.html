@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Explique la cuenta de activo que sale...</title>
+<style>
+body{
+    width:960px;
+    margin:0 auto;
+    text-align: center;
+}
+h1{
+    text-align:center;
+}
+#miCanvas{
+    border:dotted 2px yellow;
+    background:green;    
+}
+#estadisticas {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+button {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+</style>
+<script>
+var ctx, canvas, palabra, intentos = 5;
+var letras = "QWERTYUIOPASDFGHJKLÑZXCVBNM";
+var colorTecla = "black", colorMargen = "white";
+var inicioX = 200, inicioY = 300, lon = 35, margen = 20;
+var teclas_array = [], letras_array = [], palabras_array = [
+    "CAJA", "BANCOS", "INVERSIONES", "BONOS", "DEUDORES", "INVENTARIOS", "TERRENOS", 
+    "EDIFICACIONES", "MAQUINARIA", "MUEBLES", "COMPUTADORES", "TRANSPORTE"
+];
+var aciertosTotales = 0, perdidasTotales = 0, aciertos = 0, errores = 0;
+
+function actualizarEstadisticas() {
+    document.getElementById("estadisticas").textContent = 
+        "Intentos restantes: " + (5 - errores) + " | Aciertos: " + aciertosTotales + " | Pérdidas: " + perdidasTotales;
+}
+
+function Tecla(x, y, ancho, alto, letra){
+    this.x = x; this.y = y; this.ancho = ancho; this.alto = alto; this.letra = letra;    
+    this.dibuja = function() {
+        ctx.fillStyle = colorTecla;
+        ctx.strokeStyle = colorMargen;
+        ctx.fillRect(this.x, this.y, this.ancho, this.alto);
+        ctx.strokeRect(this.x, this.y, this.ancho, this.alto);
+        ctx.fillStyle = "white";
+        ctx.font = "bold 20px Courier";
+        ctx.fillText(this.letra, this.x+this.ancho/2-5, this.y+this.alto/2+5);
+    }
+}
+
+function Letra(x, y, ancho, alto, letra){
+    this.x = x; this.y = y; this.ancho = ancho; this.alto = alto; this.letra = letra;    
+    this.dibuja = function() {
+        ctx.fillStyle = "white";
+        ctx.strokeStyle = "black";
+        ctx.fillRect(this.x, this.y, this.ancho, this.alto);
+        ctx.strokeRect(this.x, this.y, this.ancho, this.alto);
+    }
+    this.dibujaLetra = function() {
+        ctx.fillStyle = "black";
+        ctx.font = "bold 40px Courier";
+        ctx.fillText(this.letra, this.x+this.ancho/2-12, this.y+this.alto/2+14);
+    }
+}
+
+function teclado(){
+    teclas_array = [];
+    var x = inicioX, y = inicioY, col = 0, ren = 0;
+    for(var i = 0; i < letras.length; i++){
+        var letra = letras[i];
+        var miLetra = new Tecla(x, y, lon, lon, letra);
+        miLetra.dibuja();
+        teclas_array.push(miLetra);
+        x += lon + margen;
+        col++;
+        if(col==10){ col = 0; ren++; x = ren == 2 ? 280 : inicioX; }
+        y = inicioY + ren * 50;
+    }
+}
+
+function pintaPalabra(){
+    var p = Math.floor(Math.random()*palabras_array.length);
+    palabra = palabras_array[p];
+    letras_array = [];
+    var x = (canvas.width - (50 + margen) * palabra.length) / 2;
+    for(var i=0; i<palabra.length; i++){
+        var miLetra = new Letra(x, 230, 50, 50, palabra[i]);
+        miLetra.dibuja();
+        letras_array.push(miLetra);
+        x += 50 + margen;
+    }
+}
+
+function selecciona(e){
+    var x = e.clientX - canvas.getBoundingClientRect().left;
+    var y = e.clientY - canvas.getBoundingClientRect().top;
+    var bandera = false;
+    teclas_array.forEach(tecla => {
+        if(tecla.x > 0 && x > tecla.x && x < tecla.x + tecla.ancho && y > tecla.y && y < tecla.y + tecla.alto){
+            palabra.split('').forEach((letra, i) => {
+                if(letra === tecla.letra){
+                    letras_array[i].dibujaLetra();
+                    aciertos++;
+                    bandera = true;
+                }
+            });
+            if(!bandera) errores++;
+            ctx.clearRect(tecla.x-1, tecla.y-1, tecla.ancho+2, tecla.alto+2);
+            tecla.x = -1;
+            actualizarEstadisticas();
+            if(aciertos == palabra.length || errores == 5) mostrarResultado();
+        }
+    });
+}
+
+function mostrarResultado(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "black";
+    ctx.font = "bold 50px Courier";
+    ctx.fillText(errores < 5 ? "¡Correcto!" : "Perdiste...", 300, 280);
+    ctx.font = "bold 80px Courier";
+    ctx.fillText(palabra, (canvas.width - palabra.length*48)/2, 380);
+    if (errores < 5) aciertosTotales++;
+    else perdidasTotales++;
+    actualizarEstadisticas();
+    document.getElementById("botones").style.display = "block";
+}
+
+function reiniciarJuego(){
+    errores = 0; aciertos = 0;
+    document.getElementById("botones").style.display = "none";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    teclado(); pintaPalabra(); actualizarEstadisticas();
+}
+
+window.onload = function(){
+    canvas = document.getElementById("miCanvas");
+    if(canvas && canvas.getContext){
+        ctx = canvas.getContext("2d");
+        teclado(); pintaPalabra(); actualizarEstadisticas();
+        canvas.addEventListener("click", selecciona, false);
+    }
+}
+function salirJuego() {
+    document.body.innerHTML = "<h2>¡Acabas de salir de adivinar cuentas!</h2>";
+}
+
+</script>
+</head>
+<body>
+<h1>Explique la cuenta de ACTIVO que aparece en las casillas</h1>
+<canvas id="miCanvas" width="960px" height="450px"></canvas>
+<div id="estadisticas"></div>
+<div id="botones" style="display:none;">
+    <button onclick="reiniciarJuego()">Jugar de nuevo</button>
+</div>
+<div class="button">
+    <button onclick="salirJuego()">Salir</button>
+</div>
+<footer>
+    <small>Derechos reservados - Mario Bejarano</small>
+</footer>
+</body>
+
+</html>

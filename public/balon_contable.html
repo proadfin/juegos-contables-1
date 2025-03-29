@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Balón de Definiciones</title>
+<style>
+    body {
+        background-color: #ADD8E6;
+        text-align: center;
+        font-family: Arial, sans-serif;
+    }
+    canvas {
+        border: 3px solid black;
+        background-color: green;
+        display: block;
+        margin: auto;
+    }
+    .info {
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .botones {
+        margin-top: 10px;
+    }
+    .activo-label {
+        color: green;
+        font-weight: bold;
+    }
+    .pasivo-label {
+        color: red;
+        font-weight: bold;
+    }
+    .descripcion {
+        margin-bottom: 5px;
+        line-height: 1.2;
+        font-family: Arial, sans-serif;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+    <h2>Balón Contable</h2>
+    <p class="descripcion">De una breve explicación de la información que aparece y</p>
+    <p class="descripcion">diga en qué parte del estado financiero se ubica.</p>
+    
+    <p class="descripcion"></p>
+    <label for="veces">Cantidad de operaciones con el balón...</label>
+    
+    <input type="number" id="veces" min="1" value="0">
+    <button onclick="iniciarJuego()">Iniciar</button>
+    <canvas id="miCanvas" width="520" height="300"></canvas>
+    <div class="info">
+        <p>Puntaje del Jugador 1: <span id="puntaje1">0</span> | Puntaje del Jugador 2: <span id="puntaje2">0</span></p>
+        <p class="activo-label">Pregunta al Jugador 1 =>: <span id="tran1"></span></p>
+        <p class="pasivo-label">Pregunta al Jugador 2 =>: <span id="tran2"></span></p>
+    </div>
+    <div class="botones">
+        <button onclick="reiniciarJuego()">Reiniciar</button>
+        <button onclick="salirJuego()">Salir</button>
+    </div>
+<script>
+    let canvas = document.getElementById("miCanvas");
+    let ctx = canvas.getContext("2d");
+    let bolax = 50, bolay = 50, vx = 5, vy = 5, radio = 20;
+    let puntaje1 = 0, puntaje2 = 0, golpes = 0, limite = 50;
+
+    const losactivos = ["Caja", "Bancos", "Inversiones a corto plazo", "Inversiones a largo plazo", "Deudores", "Inventarios", "Terrenos", "Construcciones y edificaciones", "Muebles y enseres", "Vehículos", "Maquinaria", "Equipos de oficina", "Equipos de computación", "Software", "Patentes", "Marcas", "Derechos de autor"];
+    const lospasivos = ["Obligaciones financieras de corto plazo", "Obligaciones financieras de largo plazo", "Proveedores nacionales", "Proveedores internacionales", "Impuestos por pagar", "Sueldos por pagar", "Prima por pagar", "Pasivos estimados", "Ingresos recibidos por anticipado", "Cuentas por pagar", "Bonos por pagar", "Hipotecas por pagar", "Arrendamientos financieros", "Obligaciones fiscales", "Deuda a largo plazo"];
+
+    function moverBola() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        bolax += vx;
+        bolay += vy;
+
+        if (bolax + radio >= canvas.width || bolax - radio <= 0) {
+            vx = -vx;
+            actualizarPuntaje();
+            golpes++;
+        }
+        if (bolay + radio >= canvas.height || bolay - radio <= 0) {
+            vy = -vy;
+            actualizarPuntaje();
+            golpes++;
+        }
+        ctx.beginPath();
+        ctx.arc(bolax, bolay, radio, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        
+        if (golpes < limite) {
+            setTimeout(() => requestAnimationFrame(moverBola), 150);
+        } else {
+            finalizarJuego();
+        }
+    }
+
+    function actualizarPuntaje() {
+        let puntos = Math.floor(Math.random() * 2) + 1;
+        if (Math.random() < 0.5) {
+            puntaje1 += puntos;
+            document.getElementById("puntaje1").textContent = puntaje1;
+            document.getElementById("tran1").textContent = losactivos[Math.floor(Math.random() * losactivos.length)];
+        } else {
+            puntaje2 += puntos;
+            document.getElementById("puntaje2").textContent = puntaje2;
+            document.getElementById("tran2").textContent = lospasivos[Math.floor(Math.random() * lospasivos.length)];
+        }
+    }
+
+    function iniciarJuego() {
+        limite = parseInt(document.getElementById("veces").value) || 50;
+        golpes = 0;
+        puntaje1 = 0;
+        puntaje2 = 0;
+        document.getElementById("puntaje1").textContent = 0;
+        document.getElementById("puntaje2").textContent = 0;
+        document.getElementById("tran1").textContent = "";
+        document.getElementById("tran2").textContent = "";
+        moverBola();
+    }
+
+    function finalizarJuego() {
+        let mensaje = puntaje1 > puntaje2 ? "Jugador 1 gana!" : puntaje2 > puntaje1 ? "Jugador 2 gana!" : "Empate!";
+        alert("Juego terminado. " + mensaje);
+    }
+
+    function reiniciarJuego() {
+        location.reload();
+    }
+
+    function salirJuego() {
+        document.body.innerHTML = "<h2>¡Acabas de salir del balón contable!</h2>";
+    }
+</script>
+<footer>
+    <small>Derechos reservados - Mario Bejarano</small>
+</footer>
+</body>

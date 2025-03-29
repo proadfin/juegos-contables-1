@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú de Juegos Contables</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="login">
+        <h2>Ingrese su código de acceso</h2>
+        <input type="text" id="usuario" placeholder="Usuario">
+        <input type="password" id="codigo" placeholder="Código de acceso">
+        <button onclick="verificarCodigo()">Ingresar</button>
+        <p id="mensaje" style="color: red;"></p>
+    </div>
+
+    <div id="contenido" style="display: none;">
+        <nav>
+            <ul>
+                <li><a href="#" onclick="cargarJuego('ecuacion.html')">Ecuación Contable</a></li>
+                <li><a href="#" onclick="cargarJuego('adivinar_activos.html')">Adivinar Activos</a></li>
+                <li><a href="#" onclick="cargarJuego('balon_contable.html')">Balón Contable</a></li>
+                <li><a href="#" onclick="cargarJuego('futbol_contable_BG.html')">Fútbol Contable</a></li>
+                <li><a href="#" onclick="cargarJuego('partida_doble.html')">Partida Doble</a></li>
+                <li><a href="#" onclick="cargarJuego('calculadora.html')">Calculadora Contable</a></li>
+            </ul>
+        </nav>
+        <div class="container">
+            <iframe id="juegoFrame" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <script>
+        function verificarCodigo() {
+            const usuario = document.getElementById('usuario').value;
+            const codigo = document.getElementById('codigo').value;
+            
+            fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, codigo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('login').style.display = 'none';
+                    document.getElementById('contenido').style.display = 'block';
+                } else {
+                    document.getElementById('mensaje').innerText = 'Código incorrecto';
+                }
+            });
+        }
+
+        function cargarJuego(juego) {
+            document.getElementById('juegoFrame').src = juego;
+        }
+    </script>
+</body>
+</html>

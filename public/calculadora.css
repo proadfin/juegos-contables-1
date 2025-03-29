@@ -1,0 +1,79 @@
+@charset "utf-8";
+
+/* CSS Document */
+
+body{
+	font-size: 98%;  /* hace que se reduzca la pantalla */
+	text-align: center;
+	width: 790px;
+	height: 250px;
+	/*margin: 2% auto; */
+	
+}	
+
+h1{	
+	color:#215E21 ;
+} 
+
+/*#micuerpo{
+	background-color:#70DB93  ;
+	
+}*/
+
+img{
+    width: 230px;
+    height: 160px;
+    align-self:left;
+}
+#op1{
+	width: 200px;
+	text-align: left;
+	margin: 1% auto;
+	
+
+}
+#miseccion{
+	width: 75%;  
+    margin: 2% auto;
+	color:rgb(196, 181, 181) ; 
+	padding-left:2px;
+	padding-top:2px;	
+
+}
+
+button{
+	width: 85%;  
+	margin: 2% auto;
+	font: 1.1em Georgia, "Times New Roman", Times, serif;
+}
+#formulario1{
+	background-color:#000000 ;
+	padding-left:2px;
+	padding-top:2px;
+
+}
+#formulario2{
+	background-color:#70DB93 ;
+
+}
+
+#pieprincipal{
+	/*background-color:#C0C0C0 ;
+	width: 85%;  /* se dejan las mismas medidas de miseccion 
+	margin: 2% auto;  */
+	
+	font: 1.1em Georgia, "Times New Roman", Times, serif;
+	color: #C0C0C0;
+	margin: 5px 5px;
+	
+	/*clear: both; 
+	margin: 7px 7px; */
+	
+	/*margin-top: 10px;*/
+}
+#formulario {
+	background-color:#cfcedfe3 ;
+	font-size: 17px;
+	font-weight: bold;
+}
+

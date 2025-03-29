@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partida Doble en Contabilidad</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #E6E8FA;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            text-align: center;
+        }
+        .input-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+        .report-container {
+            margin-top: 20px;
+        }
+        canvas {
+            max-width: 100%;
+            
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Partida Doble en Contabilidad</h2>
+        <div class="input-container">
+            <label>Cuenta Débito: 
+                <select id="cuentaDebito"></select>
+            </label>
+            <label>Cuenta Crédito: 
+                <select id="cuentaCredito"></select>
+            </label>
+        </div>
+        <div class="input-container">
+            <input type="number" id="valor" placeholder="Valor" min="1">
+            <button onclick="registrarTransaccion()">Registrar</button>
+        </div>
+
+        <div class="report-container">
+            <h3>Balance General</h3>
+            <canvas id="balanceGeneralChart"></canvas>
+            <p id="balanceResumen"></p>
+        </div>
+
+        <div class="report-container">
+            <h3>Estado de Resultados</h3>
+            <canvas id="estadoResultadosChart"></canvas>
+            <p id="estadoResultadosResumen"></p>
+        </div>
+        <div class="button">
+            <button onclick="salirJuego()">Salir</button>
+        </div>
+
+    </div>
+
+    <script>
+        
+        const cuentas = [
+            "Caja", "Bancos", "Inversiones", "Deudores", "Inventarios", "Propiedades",
+            "Préstamos bancarios", "Proveedores", "Cuentas por pagar", "Impuestos por pagar",
+            "Obligaciones laborales", "Otros pasivos", "Aportes de capital",
+            "Ingresos por ventas", "Intereses", "Costo de ventas", "Gasto sueldos", 
+            "Gasto honorarios", "Gasto servicios públicos", "Gasto intereses", "Gastos de impuestos"
+        ];
+
+        const activos = ["Caja", "Bancos", "Inversiones", "Deudores", "Inventarios", "Propiedades"];
+        const pasivosCapital = ["Préstamos bancarios", "Proveedores", "Cuentas por pagar", "Impuestos por pagar", "Obligaciones laborales", "Otros pasivos", "Aportes de capital"];
+        const ingresos = ["Ingresos por ventas", "Intereses"];
+        const costosGastos = ["Costo de ventas", "Gasto sueldos", "Gasto honorarios", "Gasto servicios públicos", "Gasto intereses", "Gastos de impuestos"];
+        
+        let registros = {};
+        cuentas.forEach(cuenta => registros[cuenta] = 0);
+
+        let balanceChart = null;
+        let estadoChart  = null;
+
+   
+    function salirJuego() {
+        document.body.innerHTML = "<h2>¡Acabas de salir de la partida doble!</h2>";
+    }
+        function llenarSelects() {
+            let selectDebito = document.getElementById("cuentaDebito");
+            let selectCredito = document.getElementById("cuentaCredito");
+            cuentas.forEach(cuenta => {
+                let option = new Option(cuenta, cuenta);
+                selectDebito.add(option.cloneNode(true));
+                selectCredito.add(option);
+            });
+        }
+
+        function registrarTransaccion() {
+            let debito = document.getElementById("cuentaDebito").value;
+            let credito = document.getElementById("cuentaCredito").value;
+            let valor = parseFloat(document.getElementById("valor").value);
+            
+            if (!valor || valor <= 0) {
+                alert("Ingrese un valor válido");
+                return;
+            }
+            
+            registros[debito] += valor;
+            registros[credito] -= valor;
+            actualizarGraficas();
+        }
+
+        function actualizarGraficas() {
+            let ctxBalance = document.getElementById("balanceGeneralChart").getContext("2d");
+            let ctxEstado = document.getElementById("estadoResultadosChart").getContext("2d");
+
+            let datosBalance = activos.concat(pasivosCapital).map(cuenta => (registros[cuenta] || 0));
+            let datosEstado  = ingresos.concat(costosGastos).map(cuenta => (registros[cuenta] || 0));
+
+            let totalActivos = activos.reduce((sum, cuenta) => sum + (registros[cuenta] || 0), 0);
+            let totalPasivosCapital = pasivosCapital.reduce((sum, cuenta) => sum + (registros[cuenta] || 0), 0);
+            let resultadoBalance = totalActivos - Math.abs(totalPasivosCapital);
+            
+            let totalIngresos = -1 * ingresos.reduce((sum, cuenta) => sum + (registros[cuenta] || 0), 0);
+            let totalCostosGastos = costosGastos.reduce((sum, cuenta) => sum + (registros[cuenta] || 0), 0);
+            let resultadoEstado = (totalIngresos) - totalCostosGastos;
+            
+            document.getElementById("balanceResumen").innerText = `Activos: ${totalActivos} - Pasivos y Capital: ${totalPasivosCapital} = Resultado: ${resultadoBalance}`;
+            document.getElementById("estadoResultadosResumen").innerText = `Total Ingresos: ${totalIngresos} - Costo y Gastos: ${totalCostosGastos} = Resultado: ${resultadoEstado}`;
+            
+            if (balanceChart) balanceChart.destroy();
+            if (estadoChart) estadoChart.destroy();
+
+            balanceChart = new Chart(ctxBalance, {
+                type: 'bar',
+                data: {
+                    labels: activos.concat(pasivosCapital),
+                    datasets: [{
+                        label: 'Balance General',
+                        data: datosBalance,
+                        backgroundColor: 'green'
+                    }]
+                }
+            });
+
+            estadoChart = new Chart(ctxEstado, {
+                type: 'bar',
+                data: {
+                    labels: ingresos.concat(costosGastos),
+                    datasets: [{
+                        label: 'Estado de Resultados',
+                        data: datosEstado,
+                        backgroundColor: 'orange'
+                    }]
+                }
+            });
+        }
+
+        llenarSelects();
+    </script>
+    <footer>
+        <small>Derechos reservados - Mario Bejarano</small>
+    </footer>
+</body>
+</html>
