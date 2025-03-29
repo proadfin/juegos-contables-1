@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Contable</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #ADD8E6;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            background-color: #333;
+        }
+        nav ul li {
+            margin: 10px;
+        }
+        nav ul li button {
+            background-color: #f2f2f2;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        nav ul li button:hover {
+            background-color: #ddd;
+        }
+        #mostrar {
+            width: 80%;
+            height: 200px;
+            margin-top: 20px;
+            white-space: pre-line;
+        }
+    </style>
+    <script>
+        let cuentas = [];
+        let nombresCuentas = [];
+        let cuentasmov = [];
+        let saldoCuentas = {};
+        let totalDebitos = 0;
+        let totalCreditos = 0;
+        let transaccionId = 1;
+
+        function cargar() {
+            while (true) {
+                let cuenta = prompt("Ingrese una cuenta contable (máximo 6 dígitos) o escriba 'salir' para terminar");
+                if (cuenta.toLowerCase() === 'salir') break;
+                
+                let index = cuentas.indexOf(cuenta);
+                if (index !== -1) {
+                    let reemplazar = confirm("La cuenta ya existe. ¿Desea reemplazar el nombre de la cuenta?");
+                    if (reemplazar) {
+                        nombresCuentas[index] = prompt("Ingrese el nuevo nombre de la cuenta");
+                        alert("Cuenta actualizada: " + cuenta + " - " + nombresCuentas[index]);
+                    }
+                } else {
+                    let nombre = prompt("Ingrese el nombre de la cuenta");
+                    if (cuenta && !isNaN(cuenta) && cuenta.length <= 6 && nombre) {
+                        cuentas.push(cuenta);
+                        nombresCuentas.push(nombre);
+                        saldoCuentas[cuenta] = 0; // Inicializar saldo en 0 para la nueva cuenta
+                        alert("Cuenta agregada: " + cuenta + " - " + nombre);
+                    } else {
+                        alert("Datos no válidos");
+                    }
+                }
+            }
+        }
+        
+        function mostrarcuentas() {
+            let resultado = "Cuentas:\n";
+            for (let i = 0; i < cuentas.length; i++) {
+                resultado += cuentas[i] + " - " + nombresCuentas[i] + "\n";
+            }
+            document.getElementById("mostrar").value = resultado;
+        }
+        
+        function grabarmov() {
+            while (true) {
+                let cuentaDb = prompt("Ingrese cuenta débito o escriba 'salir' para terminar");
+                if (cuentaDb.toLowerCase() === 'salir') break;
+                let valorDb = parseFloat(prompt("Ingrese valor débito"));
+                let cuentaCr = prompt("Ingrese cuenta crédito");
+                let valorCr = parseFloat(prompt("Ingrese valor crédito"));
+                
+                if (cuentaDb && cuentaCr && !isNaN(valorDb) && !isNaN(valorCr)) {
+                    // Registrar la transacción
+                    let id = transaccionId++;
+                    cuentasmov.push({id, cuentaDb, valorDb, cuentaCr, valorCr});
+                    totalDebitos += valorDb;
+                    totalCreditos += valorCr;
+
+                    // Actualizar saldos solo si las cuentas existen
+                    if (cuentas.includes(cuentaDb)) {
+                        saldoCuentas[cuentaDb] = (saldoCuentas[cuentaDb] || 0) + valorDb;
+                    }
+                    if (cuentas.includes(cuentaCr)) {
+                        saldoCuentas[cuentaCr] = (saldoCuentas[cuentaCr] || 0) - valorCr;
+                    }
+
+                    alert("Transacción registrada con ID: " + id);
+                } else {
+                    alert("Datos incorrectos");
+                }
+            }
+        }
+        
+        function mostrarmovim() {
+            let resultado = "Movimientos:\n";
+            cuentasmov.forEach(mov => {
+                resultado += `ID: ${mov.id}\n`;
+                resultado += `Débito: ${mov.cuentaDb} - ${mov.valorDb} (${nombresCuentas[cuentas.indexOf(mov.cuentaDb)] || 'Nombre inexistente'})\n`;
+                resultado += `Crédito: ${mov.cuentaCr} - ${mov.valorCr} (${nombresCuentas[cuentas.indexOf(mov.cuentaCr)] || 'Nombre inexistente'})\n\n`;
+            });
+            let diferencia = totalDebitos - totalCreditos;
+            resultado += `Total débitos: ${totalDebitos}\nTotal créditos: ${totalCreditos}\nDiferencia: ${diferencia}\n`;
+            document.getElementById("mostrar").value = resultado;
+        }
+        
+        function mostrarSaldos() {
+            let resultado = "Saldo de Cuentas:\n";
+            for (let cuenta in saldoCuentas) {
+                resultado += `Cuenta ${cuenta} - ${nombresCuentas[cuentas.indexOf(cuenta)] || 'Desconocido'}: ${saldoCuentas[cuenta]}\n`;
+            }
+            let diferencia = totalDebitos - totalCreditos;
+            resultado += `\nTotal débitos: ${totalDebitos}\nTotal créditos: ${totalCreditos}\nDiferencia: ${diferencia}\n`;
+            document.getElementById("mostrar").value = resultado;
+        }
+        
+        function borrarRegistros() {
+            let id = prompt("Ingrese el ID de la transacción que desea borrar");
+            if (id && !isNaN(id)) {
+                id = parseInt(id);
+                let index = cuentasmov.findIndex(mov => mov.id === id);
+                if (index !== -1) {
+                    let mov = cuentasmov[index];
+                    totalDebitos -= mov.valorDb;
+                    totalCreditos -= mov.valorCr;
+
+                    // Revertir saldos solo si las cuentas existen
+                    if (cuentas.includes(mov.cuentaDb)) {
+                        saldoCuentas[mov.cuentaDb] -= mov.valorDb;
+                    }
+                    if (cuentas.includes(mov.cuentaCr)) {
+                        saldoCuentas[mov.cuentaCr] += mov.valorCr;
+                    }
+
+                    cuentasmov.splice(index, 1);
+                    alert("Transacción con ID " + id + " borrada");
+                } else {
+                    alert("No se encontró una transacción con ese ID");
+                }
+            } else {
+                alert("ID no válido");
+            }
+        }
+        
+        function recalcularSaldos() {
+            // Reiniciar saldos
+            for (let cuenta in saldoCuentas) {
+                saldoCuentas[cuenta] = 0;
+            }
+
+            // Recalcular saldos basados en las transacciones
+            cuentasmov.forEach(mov => {
+                if (cuentas.includes(mov.cuentaDb)) {
+                    saldoCuentas[mov.cuentaDb] = (saldoCuentas[mov.cuentaDb] || 0) + mov.valorDb;
+                }
+                if (cuentas.includes(mov.cuentaCr)) {
+                    saldoCuentas[mov.cuentaCr] = (saldoCuentas[mov.cuentaCr] || 0) - mov.valorCr;
+                }
+            });
+
+            alert("Saldos recalculados correctamente.");
+        }
+        
+        function salirJuego() {
+          document.body.innerHTML = "<h2>¡Acabas de salir de la calculadora contable!</h2>";
+      }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Calculadora Contable</h1>
+        <nav>
+            <ul>
+                <li><button onclick="cargar()">Crear Cuentas Contables</button></li>
+                <li><button onclick="mostrarcuentas()">Consultar Cuentas</button></li>
+                <li><button onclick="grabarmov()">Reconocer Transacciones</button></li>
+                <li><button onclick="mostrarmovim()">Consultar Transacciones</button></li>
+                <li><button onclick="mostrarSaldos()">Mostrar Saldos</button></li>
+                <li><button onclick="borrarRegistros()">Borrar Registros</button></li>
+                <li><button onclick="recalcularSaldos()">Recalcular Saldos</button></li>
+                <li><button onclick="salirJuego()">Salir</button></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="consulta">
+            <h2>Consultas</h2>
+            <textarea id="mostrar" rows="10" cols="50">Consultas...</textarea>
+        </section>
+    </main>
+    
+    <footer>
+        <small>Derechos reservados - Mario Bejarano</small>
+    </footer>
+</body>
+</html>

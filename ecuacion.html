@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecuación Contable</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #ADD8E6;}
+        .container { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
+        input { width: 80px; padding: 5px; margin: 5px; text-align: center; }
+        canvas { max-width: 100%; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ecuación Contable</h2>
+        <label>Activos:</label> <input type="number" id="activos" value="0"><br>
+        <label>Pasivos:</label> <input type="number" id="pasivos" value="0"><br>
+        <label>Patrimonio:</label> <input type="number" id="patrimonio" value="0"><br>
+        <button onclick="calcularEcuacion()">Calcular</button>
+        <button onclick="salirJuego()">Salir</button>
+        <p id="resultado"></p>
+        <canvas id="grafico"></canvas>
+    </div>
+    
+    <script>
+        function calcularEcuacion() {
+            let activos = parseFloat(document.getElementById('activos').value) || 0;
+            let pasivos = parseFloat(document.getElementById('pasivos').value) || 0;
+            let patrimonio = parseFloat(document.getElementById('patrimonio').value) || 0;
+            let totalPasivoPatrimonio = pasivos + patrimonio;
+            let diferencia = activos - totalPasivoPatrimonio;
+            let mensaje = (diferencia === 0) ? "Se cumple la ecuación contable" : `La ecuación contable está descuadrada en: ${diferencia}`;
+            document.getElementById('resultado').textContent = mensaje;
+            generarGrafico(activos, pasivos, patrimonio);
+        }
+        
+        function generarGrafico(activos, pasivos, patrimonio) {
+            let ctx = document.getElementById('grafico').getContext('2d');
+            if (window.miGrafico) { window.miGrafico.destroy(); }
+            window.miGrafico = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Activos', 'Pasivos', 'Patrimonio'],
+                    datasets: [{
+                        data: [activos, pasivos, patrimonio],
+                        backgroundColor: ['green', 'red', 'orange']
+                    }]
+                }
+            });
+        }
+        function salirJuego() {
+            document.body.innerHTML = "<h2>¡Acabas de salir de ecuación contable!</h2>";
+        }
+    </script>
+    <footer>
+        <small>Derechos reservados - Mario Bejarano</small>
+    </footer>
+</body>
+</html>
